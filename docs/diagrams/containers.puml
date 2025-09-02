@@ -8,18 +8,21 @@ System_Boundary(c1, "Кинобездна") {
   Container(auth, "Auth Service", "Go", "Аутентификация и выдача токенов")
   Container(userSvc, "User Service", "Go + PostgreSQL", "Регистрация, профиль, оценки, избранное")
   Container(metadataSvc, "Metadata Service", "Go + PostgreSQL", "Описание фильмов, жанры, актёры")
-  Container(videoSvc, "Video Service", "Go + S3", "Доставка и управление видеоконтентом")
+  Container(videoSvc, "Video Service", "Go + CDN", "Доставка и управление видеоконтентом")
   Container(subscriptionSvc, "Subscription Service", "Go + PostgreSQL", "Управление подписками пользователей")
   Container(discountSvc, "Discount Service", "Go", "Скидки и промо-акции")
   Container(paymentSvc, "Payment Service", "Go + PostgreSQL", "Платёжные операции")
-  Container(recommendationAdapter, "Recommendation Adapter", "Go + RabbitMQ", "Адаптер к внешней рекомендательной системе")
+  Container(eventsSvc, "Events Service", "Go + Kafka", "Хранилище доменных событий")
+  Container(recommendationAdapter, "Recommendation Adapter", "Go + Kafka", "Адаптер к внешней рекомендательной системе")
   Container(integrator, "Cinema Integrator", "Go", "Интеграция с внешними онлайн-кинотеатрами")
   Container(logging, "Logging Service", "Fluentd / Loki", "Централизованный сбор логов")
 }
 
 System_Ext(recommendation, "Внешняя рекомендательная система")
 System_Ext(paymentSystem, "Платёжная система")
+System_Ext(cdn, "CDN", "Кэширование и раздача статики")
 System_Ext(s3, "S3", "Хранилище видеофайлов")
+System_Ext(externalStreaming, "Внешние онлайн-кинотеатры", "Стриминговые сервисы-партнёры")
 
 Rel(user, api, "Использует", "HTTPS")
 Rel(api, auth, "Запрос токена / проверка")
@@ -33,14 +36,23 @@ Rel(api, paymentSvc, "Создание и проверка транзакций"
 Rel(subscriptionSvc, discountSvc, "Проверка применимых акций")
 Rel(paymentSvc, paymentSystem, "Платёжные транзакции", "HTTPS")
 
-Rel(metadataSvc, recommendationAdapter, "Метаданные и оценки", "RabbitMQ")
-Rel(recommendationAdapter, recommendation, "Рекомендации по фильмам", "RabbitMQ")
+Rel(metadataSvc, eventsSvc, "События обновления метаданных", "Kafka")
+Rel(userSvc, eventsSvc, "События пользователей", "Kafka")
+Rel(paymentSvc, eventsSvc, "События платежей", "Kafka")
+Rel(subscriptionSvc, eventsSvc, "События подписок", "Kafka")
 
-Rel(videoSvc, s3, "Загрузка и отдача видео", "HTTPS")
-Rel(userSvc, logging, "Логирует события")
-Rel(paymentSvc, logging, "Логирует события")
+Rel(eventsSvc, recommendationAdapter, "Доменные события", "Kafka")
+Rel(recommendationAdapter, recommendation, "Получение рекомендаций по фильмам", "HTTPS")
+
+Rel(videoSvc, s3, "Загрузка медиафайлов", "HTTPS")
+Rel(cdn, s3, "Синхронизация и кэширование", "HTTPS")
+Rel(videoSvc, cdn, "Управление кэшем", "HTTPS")
+
+Rel(eventsSvc, logging, "Логирует события")
 
 Rel(integrator, metadataSvc, "Обогащение метаданных")
 Rel(integrator, videoSvc, "Подключение контента")
+
+Rel(integrator, externalStreaming, "Получение каталога и метаданных", "REST API")
 
 @enduml
