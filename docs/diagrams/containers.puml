@@ -13,7 +13,7 @@ System_Boundary(c1, "Кинобездна") {
   Container(discountSvc, "Discount Service", "Go", "Скидки и промо-акции")
   Container(paymentSvc, "Payment Service", "Go + PostgreSQL", "Платёжные операции")
   Container(eventsSvc, "Events Service", "Go + Kafka", "Хранилище доменных событий")
-  Container(recommendationAdapter, "Recommendation Adapter", "Go + Kafka", "Адаптер к внешней рекомендательной системе")
+  Container(recommendationAdapter, "Recommendation Adapter", "Go", "Адаптер к внешней рекомендательной системе")
   Container(integrator, "Cinema Integrator", "Go", "Интеграция с внешними онлайн-кинотеатрами")
   Container(logging, "Logging Service", "Fluentd / Loki", "Централизованный сбор логов")
 }
@@ -24,7 +24,7 @@ System_Ext(cdn, "CDN", "Кэширование и раздача статики"
 System_Ext(s3, "S3", "Хранилище видеофайлов")
 System_Ext(externalStreaming, "Внешние онлайн-кинотеатры", "Стриминговые сервисы-партнёры")
 
-Rel(user, api, "Использует", "HTTPS")
+Rel(user, api, "Запросы к сервису", "HTTPS")
 Rel(api, auth, "Запрос токена / проверка")
 Rel(api, userSvc, "Запросы к профилю, избранному, оценкам")
 Rel(api, metadataSvc, "Запросы метаданных")
@@ -45,8 +45,7 @@ Rel(eventsSvc, recommendationAdapter, "Доменные события", "Kafka"
 Rel(recommendationAdapter, recommendation, "Получение рекомендаций по фильмам", "HTTPS")
 
 Rel(videoSvc, s3, "Загрузка медиафайлов", "HTTPS")
-Rel(cdn, s3, "Синхронизация и кэширование", "HTTPS")
-Rel(videoSvc, cdn, "Управление кэшем", "HTTPS")
+Rel(s3, cdn, "Синхронизация и кэширование", "HTTPS")
 
 Rel(eventsSvc, logging, "Логирует события")
 
@@ -55,4 +54,6 @@ Rel(integrator, videoSvc, "Подключение контента")
 
 Rel(integrator, externalStreaming, "Получение каталога и метаданных", "REST API")
 
+Rel(user, cdn, "Стриминг видео", "HTTPS")
+Rel(api, recommendationAdapter, "Запрос рекомендаций", "HTTPS")
 @enduml
