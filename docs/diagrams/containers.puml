@@ -1,7 +1,9 @@
 @startuml
 !include <C4/C4_Container>
 
-Person(user, "Пользователь", "Использует сервис через разные устройства")
+Person(mobileUser, "Мобильные устройства", "Смартфоны, планшеты")
+Person(desktopUser, "Десктопные устройства", "Ноутбуки, ПК")
+Person(tvUser, "Smart TV устройства", "Телевизоры, приставки")
 
 System_Boundary(c1, "Кинобездна") {
   Container(api, "API Gateway", "Nginx + Go", "Единая точка входа для клиентов")
@@ -16,6 +18,9 @@ System_Boundary(c1, "Кинобездна") {
   Container(recommendationAdapter, "Recommendation Adapter", "Go", "Адаптер к внешней рекомендательной системе")
   Container(integrator, "Cinema Integrator", "Go", "Интеграция с внешними онлайн-кинотеатрами")
   Container(logging, "Logging Service", "Fluentd / Loki", "Централизованный сбор логов")
+  Container(mobileBFF, "Mobile BFF", "Go", "Адаптация API для мобильных устройств")
+  Container(desktopBFF, "Desktop BFF", "Go", "Адаптация API для веб-интерфейса")
+  Container(tvBFF, "TV BFF", "Go", "Адаптация API для Smart TV")
 }
 
 System_Ext(recommendation, "Внешняя рекомендательная система")
@@ -23,6 +28,14 @@ System_Ext(paymentSystem, "Платёжная система")
 System_Ext(cdn, "CDN", "Кэширование и раздача статики")
 System_Ext(s3, "S3", "Хранилище видеофайлов")
 System_Ext(externalStreaming, "Внешние онлайн-кинотеатры", "Стриминговые сервисы-партнёры")
+
+Rel(mobileUser, mobileBFF, "Использует мобильное приложение", "HTTPS")
+Rel(desktopUser, desktopBFF, "Использует веб-интерфейс", "HTTPS")
+Rel(tvUser, tvBFF, "Использует TV приложение", "HTTPS")
+
+Rel(mobileBFF, api, "Запросы к основным сервисам", "HTTPS")
+Rel(desktopBFF, api, "Запросы к основным сервисам", "HTTPS")
+Rel(tvBFF, api, "Запросы к основным сервисам", "HTTPS")
 
 Rel(user, api, "Запросы к сервису", "HTTPS")
 Rel(api, auth, "Запрос токена / проверка")
@@ -54,6 +67,8 @@ Rel(integrator, videoSvc, "Подключение контента")
 
 Rel(integrator, externalStreaming, "Получение каталога и метаданных", "REST API")
 
-Rel(user, cdn, "Стриминг видео", "HTTPS")
+Rel(mobileUser, cdn, "Стриминг видео", "HTTPS")
+Rel(desktopUser, cdn, "Стриминг видео", "HTTPS")
+Rel(tvUser, cdn, "Стриминг видео", "HTTPS")
 Rel(api, recommendationAdapter, "Запрос рекомендаций", "HTTPS")
 @enduml
