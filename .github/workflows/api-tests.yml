@@ -49,6 +49,14 @@ jobs:
           
           # Check if services are running
           docker compose ps
+          
+          # Show network information for debugging
+          echo "=== Docker networks ==="
+          docker network ls
+          echo "=== Network details ==="
+          docker network inspect cinemaabyss-network || echo "Network cinemaabyss-network not found"
+          echo "=== Services in network ==="
+          docker network inspect cinemaabyss-network --format '{{range .Containers}}{{.Name}} {{end}}' || echo "Cannot inspect network"
       
       - name: Set up Node.js
         uses: actions/setup-node@v3
@@ -78,8 +86,12 @@ jobs:
           # Build the Docker image for tests
           docker build -t cinemaabyss-api-tests .
           
-          # Run the tests in Docker
-          docker run --network=cinemaabyss-network -v "$(pwd)/reports:/app/reports" cinemaabyss-api-tests --environment docker
+          # Get the actual network name created by docker-compose
+          NETWORK_NAME=$(docker network ls --format "{{.Name}}" | grep cinemaabyss-network | head -1)
+          echo "Using network: $NETWORK_NAME"
+          
+          # Run the tests in Docker with the correct network
+          docker run --rm --network="$NETWORK_NAME" -v "$(pwd)/reports:/app/reports" cinemaabyss-api-tests --environment docker
         
       
       - name: Upload test reports
