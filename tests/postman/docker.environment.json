@@ -25,6 +25,24 @@
       "value": "http://proxy-service:8000",
       "type": "default",
       "enabled": true
+    },
+    {
+      "key": "movieId",
+      "value": "1",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "userId",
+      "value": "1",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "paymentId",
+      "value": "1",
+      "type": "default",
+      "enabled": true
     }
   ],
   "_postman_variable_scope": "environment"
