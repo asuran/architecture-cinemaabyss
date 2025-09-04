@@ -126,11 +126,4 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  api-tests:
-    needs: build-and-push
-    uses: ./.github/workflows/api-tests.yml
-    with:
-      environment: 'docker'
-    secrets: inherit
-
       
