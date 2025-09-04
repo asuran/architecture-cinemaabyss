@@ -61,6 +61,7 @@
 
 ![Результаты тестов 1](docs/screenshots/testrun_1.png)
 ![Результаты тестов 2](docs/screenshots/testrun_2.png)
+
 ![Состояние топиков Kafka](docs/screenshots/topics.png)
 
 
