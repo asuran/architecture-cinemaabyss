@@ -19,6 +19,13 @@ on:
         description: 'Test folder to run (leave empty for all)'
         required: false
         type: string
+  workflow_call:
+    inputs:
+      environment:
+        description: 'Environment to run tests against'
+        required: false
+        default: 'docker'
+        type: string
 
 jobs:
   api-tests:
@@ -39,6 +46,9 @@ jobs:
           # Wait for services to be ready
           echo "Waiting for services to be ready..."
           sleep 120
+          
+          # Check if services are running
+          docker compose ps
       
       - name: Set up Node.js
         uses: actions/setup-node@v3
@@ -51,20 +61,34 @@ jobs:
         working-directory: tests/postman
         run: npm install
       
+      - name: Wait for services to be healthy
+        run: |
+          echo "Checking service health..."
+          # Wait for proxy service to be ready
+          timeout 60 bash -c 'until curl -f http://localhost:8000/health 2>/dev/null; do sleep 2; done' || echo "Proxy service health check failed"
+          # Wait for events service to be ready  
+          timeout 60 bash -c 'until curl -f http://localhost:8082/health 2>/dev/null; do sleep 2; done' || echo "Events service health check failed"
+          # Wait for movies service to be ready
+          timeout 60 bash -c 'until curl -f http://localhost:8081/health 2>/dev/null; do sleep 2; done' || echo "Movies service health check failed"
+          echo "Services health check completed"
+      
       - name: Run API tests
         working-directory: tests/postman
         run: |
-
-          docker compose up -d
-          # Wait for services to be ready
-          echo "Waiting for services to be ready..."
-          sleep 15
-          # Build the Docker image
+          # Build the Docker image for tests
           docker build -t cinemaabyss-api-tests .
           
           # Run the tests in Docker
           docker run --network=cinemaabyss-network -v "$(pwd)/reports:/app/reports" cinemaabyss-api-tests
         
+      
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-reports
+          path: tests/postman/reports/
+          retention-days: 30
       
       - name: Stop services
         if: always()
