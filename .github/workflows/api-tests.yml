@@ -33,11 +33,6 @@ jobs:
         run: |
           docker compose --version
       
-      - name: Clean up previous test data
-        run: |
-          docker compose down -v
-          docker volume prune -f
-      
       - name: Start services with Docker Compose
         run: |
           docker compose up -d
@@ -73,4 +68,4 @@ jobs:
       
       - name: Stop services
         if: always()
-        run: docker compose down -v
+        run: docker compose down
