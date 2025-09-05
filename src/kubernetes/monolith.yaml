@@ -23,7 +23,7 @@ spec:
       containers:
       - name: monolith
         image: ghcr.io/asuran/architecture-cinemaabyss/monolith:latest
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8080
         env:
